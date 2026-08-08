@@ -14,6 +14,9 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
             <Link href="/productos" className="hover:text-zinc-900">
               Productos
             </Link>
+            <Link href="/pedidos" className="hover:text-zinc-900">
+              Pedidos
+            </Link>
           </nav>
         </div>
         <form action={logout}>

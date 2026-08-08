@@ -55,6 +55,41 @@ export interface UpdateProductInput {
   inventory?: Partial<InventoryInput>;
 }
 
+export interface OrderItem {
+  id: string;
+  productId: string;
+  presentation: 'frasco' | 'decant';
+  quantity: number;
+  unitPrice: string;
+  product: Product;
+}
+
+export interface OrderCustomer {
+  id: string;
+  name: string;
+  phone: string | null;
+}
+
+export interface Order {
+  id: string;
+  code: string;
+  status: 'pendiente_pago' | 'pendiente' | 'enviado' | 'cancelado';
+  totalAmount: string;
+  paymentMethod: string | null;
+  shalomCode: string | null;
+  shalomReceiptUrl: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  shippedAt: string | null;
+  customer: OrderCustomer;
+  items: OrderItem[];
+}
+
+export interface ShipOrderInput {
+  shalomCode: string;
+  shalomReceiptUrl: string;
+}
+
 class ApiError extends Error {
   constructor(
     public status: number,
@@ -116,4 +151,23 @@ export function updateProduct(id: string, data: UpdateProductInput): Promise<Pro
 
 export function deleteProduct(id: string): Promise<void> {
   return apiFetch<void>(`/products/${id}`, { method: 'DELETE' });
+}
+
+export function getOrders(): Promise<Order[]> {
+  return apiFetch<Order[]>('/orders');
+}
+
+export function getOrder(id: string): Promise<Order> {
+  return apiFetch<Order>(`/orders/${id}`);
+}
+
+export function shipOrder(id: string, data: ShipOrderInput): Promise<Order> {
+  return apiFetch<Order>(`/orders/${id}/ship`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function cancelOrder(id: string): Promise<Order> {
+  return apiFetch<Order>(`/orders/${id}/cancel`, { method: 'PATCH' });
 }
