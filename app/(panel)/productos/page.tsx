@@ -38,7 +38,11 @@ export default async function ProductosPage() {
                 <td className="px-4 py-3 text-muted-foreground">{product.category ?? '—'}</td>
                 <td className="px-4 py-3 text-muted-foreground">S/ {product.price}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {product.priceDecant ? `S/ ${product.priceDecant}` : '—'}
+                  {!product.decantEnabled
+                    ? 'Deshabilitado'
+                    : product.priceDecant
+                      ? `S/ ${product.priceDecant}`
+                      : '—'}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {product.inventory

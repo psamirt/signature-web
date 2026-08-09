@@ -110,6 +110,16 @@ export default function ProductForm({
         />
       </Field>
 
+      <label className="flex items-center gap-2 text-sm text-foreground">
+        <input
+          name="decantEnabled"
+          type="checkbox"
+          defaultChecked={product?.decantEnabled ?? true}
+          className="h-4 w-4"
+        />
+        Habilitado para decants (algunos perfumes se venden solo por frasco)
+      </label>
+
       <Field label="URL de imagen">
         <input
           name="imageUrl"

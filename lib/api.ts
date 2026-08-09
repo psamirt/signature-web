@@ -14,6 +14,8 @@ export interface Product {
   price: string;
   priceDecant: string | null;
   decantsPerBottle: number | null;
+  /** Interruptor manual: si está en false, no se ofrecen decants aunque haya precio/rendimiento cargado. */
+  decantEnabled: boolean;
   category: string | null;
   imageUrl: string | null;
   brand: string | null;
@@ -34,6 +36,7 @@ export interface CreateProductInput {
   price: string;
   priceDecant?: string;
   decantsPerBottle?: number;
+  decantEnabled?: boolean;
   category?: string;
   imageUrl?: string;
   brand?: string;
@@ -48,6 +51,7 @@ export interface UpdateProductInput {
   price?: string;
   priceDecant?: string | null;
   decantsPerBottle?: number | null;
+  decantEnabled?: boolean;
   category?: string;
   imageUrl?: string;
   brand?: string;
@@ -76,6 +80,10 @@ export interface Order {
   status: 'pendiente_pago' | 'pendiente' | 'enviado' | 'cancelado';
   totalAmount: string;
   paymentMethod: string | null;
+  /** "shalom" (default) | "otro" — el dueño coordinó la entrega directo con el cliente. */
+  deliveryMethod: 'shalom' | 'otro';
+  /** Notas libres de la entrega cuando deliveryMethod = "otro". */
+  deliveryNotes: string | null;
   shalomAgency: string | null;
   shalomDni: string | null;
   shalomFullName: string | null;
@@ -91,7 +99,8 @@ export interface Order {
 }
 
 export interface ShipOrderInput {
-  shalomReceiptUrl: string;
+  /** Obligatorio solo si el pedido se despacha por Shalom (deliveryMethod). */
+  shalomReceiptUrl?: string;
 }
 
 class ApiError extends Error {

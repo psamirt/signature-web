@@ -62,7 +62,7 @@ export default function PedidosPage() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Productos</TableHead>
                 <TableHead>Total</TableHead>
-                <TableHead>Envío (Shalom)</TableHead>
+                <TableHead>Envío</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Acciones</TableHead>
@@ -85,7 +85,12 @@ export default function PedidosPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">S/ {order.totalAmount}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {order.shalomAgency ? (
+                    {order.deliveryMethod === 'otro' ? (
+                      <div className="space-y-0.5">
+                        <div className="font-medium text-foreground">Coordinado directo</div>
+                        {order.deliveryNotes && <div>{order.deliveryNotes}</div>}
+                      </div>
+                    ) : order.shalomAgency ? (
                       <div className="space-y-0.5">
                         <div className="font-medium text-foreground">{order.shalomAgency}</div>
                         <div>
@@ -110,7 +115,11 @@ export default function PedidosPage() {
                   </TableCell>
                   <TableCell>
                     {order.status === 'pendiente' && (
-                      <ShipOrderDialog orderId={order.id} orderCode={order.code} />
+                      <ShipOrderDialog
+                        orderId={order.id}
+                        orderCode={order.code}
+                        deliveryMethod={order.deliveryMethod}
+                      />
                     )}
                     {order.status === 'enviado' && order.shalomReceiptUrl && (
                       <a

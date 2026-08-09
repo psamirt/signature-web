@@ -16,16 +16,27 @@ import { Label } from '@/components/ui/label';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { shipOrderAction } from './actions';
 
-export default function ShipOrderDialog({ orderId, orderCode }: { orderId: string; orderCode: string }) {
+export default function ShipOrderDialog({
+  orderId,
+  orderCode,
+  deliveryMethod,
+}: {
+  orderId: string;
+  orderCode: string;
+  deliveryMethod: 'shalom' | 'otro';
+}) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const receiptRequired = deliveryMethod === 'shalom';
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!file) throw new Error('Selecciona la foto del comprobante de Shalom.');
-      const shalomReceiptUrl = await uploadToCloudinary(file);
+      if (receiptRequired && !file) {
+        throw new Error('Selecciona la foto del comprobante de Shalom.');
+      }
+      const shalomReceiptUrl = file ? await uploadToCloudinary(file) : undefined;
       return shipOrderAction(orderId, { shalomReceiptUrl });
     },
     onSuccess: () => {
@@ -49,7 +60,9 @@ export default function ShipOrderDialog({ orderId, orderCode }: { orderId: strin
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="receipt">Foto del comprobante de Shalom</Label>
+            <Label htmlFor="receipt">
+              Foto del comprobante{receiptRequired ? ' de Shalom' : ' (opcional — entrega coordinada directo)'}
+            </Label>
             <Input
               id="receipt"
               type="file"
@@ -61,7 +74,10 @@ export default function ShipOrderDialog({ orderId, orderCode }: { orderId: strin
         </div>
 
         <DialogFooter>
-          <Button disabled={!file || mutation.isPending} onClick={() => mutation.mutate()}>
+          <Button
+            disabled={(receiptRequired && !file) || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
             {mutation.isPending ? 'Subiendo…' : 'Confirmar envío'}
           </Button>
         </DialogFooter>
