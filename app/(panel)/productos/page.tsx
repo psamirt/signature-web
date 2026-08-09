@@ -9,18 +9,18 @@ export default async function ProductosPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900">Productos</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Productos</h1>
         <Link
           href="/productos/nuevo"
-          className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+          className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           + Nuevo producto
         </Link>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
+          <thead className="border-b border-border bg-muted text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">Nombre</th>
               <th className="px-4 py-3 font-medium">Categoría</th>
@@ -31,16 +31,16 @@ export default async function ProductosPage() {
               <th className="px-4 py-3 font-medium">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-border">
             {products.map((product) => (
               <tr key={product.id}>
-                <td className="px-4 py-3 font-medium text-zinc-900">{product.name}</td>
-                <td className="px-4 py-3 text-zinc-600">{product.category ?? '—'}</td>
-                <td className="px-4 py-3 text-zinc-600">S/ {product.price}</td>
-                <td className="px-4 py-3 text-zinc-600">
+                <td className="px-4 py-3 font-medium text-foreground">{product.name}</td>
+                <td className="px-4 py-3 text-muted-foreground">{product.category ?? '—'}</td>
+                <td className="px-4 py-3 text-muted-foreground">S/ {product.price}</td>
+                <td className="px-4 py-3 text-muted-foreground">
                   {product.priceDecant ? `S/ ${product.priceDecant}` : '—'}
                 </td>
-                <td className="px-4 py-3 text-zinc-600">
+                <td className="px-4 py-3 text-muted-foreground">
                   {product.inventory
                     ? `${product.inventory.sealedUnits} sellados / ${product.inventory.openDecants} decants`
                     : 'sin inventario'}
@@ -50,7 +50,7 @@ export default async function ProductosPage() {
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       product.active
                         ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-zinc-100 text-zinc-500'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {product.active ? 'Activo' : 'Inactivo'}
@@ -60,7 +60,7 @@ export default async function ProductosPage() {
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/productos/${product.id}/editar`}
-                      className="text-zinc-600 hover:text-zinc-900"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       Editar
                     </Link>
@@ -78,7 +78,7 @@ export default async function ProductosPage() {
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-zinc-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                   Todavía no hay productos.
                 </td>
               </tr>

@@ -175,3 +175,50 @@ export function shipOrder(id: string, data: ShipOrderInput): Promise<Order> {
 export function cancelOrder(id: string): Promise<Order> {
   return apiFetch<Order>(`/orders/${id}/cancel`, { method: 'PATCH' });
 }
+
+export interface TopProduct {
+  productId: string;
+  name: string;
+  quantity: number;
+  revenue: string;
+}
+
+export interface AnalyticsOverview {
+  totalOrders: number;
+  totalRevenue: string;
+  ordersByStatus: Record<string, number>;
+  abandonedOrders: number;
+  topProducts: TopProduct[];
+  regularCustomers: number;
+  conversionRate: number;
+  avgResponseMinutes: number | null;
+  escalationRate: number;
+}
+
+export function getAnalyticsOverview(): Promise<AnalyticsOverview> {
+  return apiFetch<AnalyticsOverview>('/analytics/overview');
+}
+
+export interface LeadInsightSummary {
+  conversationId: string;
+  customerName: string;
+  leadScore: string;
+  converted: boolean;
+  dropOffReason: string | null;
+  summary: string;
+  analyzedAt: string;
+}
+
+export interface LeadInsights {
+  leadScoreCounts: Record<string, number>;
+  dropOffReasonCounts: Record<string, number>;
+  recent: LeadInsightSummary[];
+}
+
+export function getLeadInsights(): Promise<LeadInsights> {
+  return apiFetch<LeadInsights>('/analytics/leads');
+}
+
+export function runLeadAnalysis(): Promise<{ analyzed: number }> {
+  return apiFetch<{ analyzed: number }>('/analytics/run-lead-analysis', { method: 'POST' });
+}

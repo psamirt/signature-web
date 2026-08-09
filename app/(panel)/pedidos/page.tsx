@@ -26,7 +26,7 @@ const STATUS_CLASS: Record<Order['status'], string> = {
   pendiente_pago: 'bg-amber-100 text-amber-700',
   pendiente: 'bg-blue-100 text-blue-700',
   enviado: 'bg-emerald-100 text-emerald-700',
-  cancelado: 'bg-zinc-100 text-zinc-500',
+  cancelado: 'bg-muted text-muted-foreground',
 };
 
 export default function PedidosPage() {
@@ -37,13 +37,13 @@ export default function PedidosPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <h1 className="text-2xl font-semibold text-zinc-900">Pedidos</h1>
-      <p className="mt-1 text-sm text-zinc-500">
+      <h1 className="text-2xl font-semibold text-foreground">Pedidos</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
         Pedidos cerrados por el bot o por ti. A las 5pm, lleva los pagados a Shalom y márcalos
         como enviados.
       </p>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
         {isLoading ? (
           <div className="space-y-2 p-4">
             <Skeleton className="h-8 w-full" />
@@ -51,7 +51,7 @@ export default function PedidosPage() {
             <Skeleton className="h-8 w-full" />
           </div>
         ) : isError ? (
-          <p className="p-6 text-center text-sm text-red-600">
+          <p className="p-6 text-center text-sm text-destructive">
             No se pudo cargar la lista de pedidos.
           </p>
         ) : (
@@ -71,23 +71,23 @@ export default function PedidosPage() {
             <TableBody>
               {orders?.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium text-zinc-900">{order.code}</TableCell>
+                  <TableCell className="font-medium text-foreground">{order.code}</TableCell>
                   <TableCell>
                     {order.customer.name}
                     {order.customer.phone && (
-                      <span className="block text-xs text-zinc-400">{order.customer.phone}</span>
+                      <span className="block text-xs text-muted-foreground">{order.customer.phone}</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-zinc-600">
+                  <TableCell className="text-muted-foreground">
                     {order.items
                       .map((item) => `${item.quantity}× ${item.product.name} (${item.presentation})`)
                       .join(', ')}
                   </TableCell>
-                  <TableCell className="text-zinc-600">S/ {order.totalAmount}</TableCell>
-                  <TableCell className="text-xs text-zinc-600">
+                  <TableCell className="text-muted-foreground">S/ {order.totalAmount}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
                     {order.shalomAgency ? (
                       <div className="space-y-0.5">
-                        <div className="font-medium text-zinc-800">{order.shalomAgency}</div>
+                        <div className="font-medium text-foreground">{order.shalomAgency}</div>
                         <div>
                           {order.shalomFullName} — DNI {order.shalomDni}
                         </div>
@@ -105,7 +105,7 @@ export default function PedidosPage() {
                       {STATUS_LABEL[order.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-zinc-500">
+                  <TableCell className="text-muted-foreground">
                     {new Date(order.createdAt).toLocaleDateString('es-PE')}
                   </TableCell>
                   <TableCell>
@@ -117,7 +117,7 @@ export default function PedidosPage() {
                         href={order.shalomReceiptUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-sm text-zinc-600 underline hover:text-zinc-900"
+                        className="text-sm text-muted-foreground underline hover:text-foreground"
                       >
                         Ver comprobante
                       </a>
@@ -127,7 +127,7 @@ export default function PedidosPage() {
               ))}
               {orders?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-zinc-400">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">
                     Todavía no hay pedidos.
                   </TableCell>
                 </TableRow>

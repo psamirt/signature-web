@@ -119,7 +119,7 @@ export default function ProductForm({
         />
       </Field>
 
-      <label className="flex items-center gap-2 text-sm text-zinc-700">
+      <label className="flex items-center gap-2 text-sm text-foreground">
         <input
           name="active"
           type="checkbox"
@@ -129,8 +129,8 @@ export default function ProductForm({
         Activo (visible en el catálogo)
       </label>
 
-      <hr className="my-2 border-zinc-200" />
-      <h2 className="text-sm font-semibold text-zinc-900">Inventario</h2>
+      <hr className="my-2 border-border" />
+      <h2 className="text-sm font-semibold text-foreground">Inventario</h2>
 
       <Field label="SKU">
         <input
@@ -162,12 +162,12 @@ export default function ProductForm({
         </Field>
       </div>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-60"
+        className="mt-2 w-fit rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
       >
         {pending ? 'Guardando…' : submitLabel}
       </button>
@@ -176,12 +176,12 @@ export default function ProductForm({
 }
 
 const inputClass =
-  'rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500';
+  'rounded-md border border-input px-3 py-2 text-sm outline-none focus:border-ring';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-zinc-700">{label}</label>
+      <label className="text-sm font-medium text-foreground">{label}</label>
       {children}
     </div>
   );

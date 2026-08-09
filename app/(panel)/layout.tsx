@@ -1,31 +1,78 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, LogOut, Package, ShoppingBag } from 'lucide-react';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 import { logout } from '../login/actions';
 
+const NAV_ITEMS = [
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/productos', label: 'Productos', icon: Package },
+  { href: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
+];
+
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
-      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3">
-        <div className="flex items-center gap-6">
-          <span className="text-sm font-semibold text-zinc-900">Aura Signature</span>
-          <nav className="flex items-center gap-4 text-sm text-zinc-600">
-            <Link href="/" className="hover:text-zinc-900">
-              Inicio
-            </Link>
-            <Link href="/productos" className="hover:text-zinc-900">
-              Productos
-            </Link>
-            <Link href="/pedidos" className="hover:text-zinc-900">
-              Pedidos
-            </Link>
-          </nav>
-        </div>
-        <form action={logout}>
-          <button type="submit" className="text-sm text-zinc-500 hover:text-zinc-900">
-            Cerrar sesión
-          </button>
-        </form>
-      </header>
-      <main className="flex flex-1 flex-col px-6 py-8">{children}</main>
-    </div>
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="px-3 py-4">
+          <span className="text-sm font-semibold text-sidebar-foreground">Aura Signature</span>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_ITEMS.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      isActive={pathname === item.href}
+                      tooltip={item.label}
+                      render={<Link href={item.href} />}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <form action={logout}>
+                <SidebarMenuButton type="submit" tooltip="Cerrar sesión">
+                  <LogOut />
+                  <span>Cerrar sesión</span>
+                </SidebarMenuButton>
+              </form>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-12 items-center gap-2 border-b border-border px-4">
+          <SidebarTrigger />
+        </header>
+        <main className="flex flex-1 flex-col bg-background px-6 py-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -15,7 +15,7 @@ export default async function EditarProductoPage({
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <h1 className="text-2xl font-semibold text-zinc-900">Editar {product.name}</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Editar {product.name}</h1>
       <div className="mt-6">
         <ProductForm
           action={updateProductAction.bind(null, id)}
