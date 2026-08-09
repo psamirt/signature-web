@@ -18,7 +18,6 @@ import { shipOrderAction } from './actions';
 
 export default function ShipOrderDialog({ orderId, orderCode }: { orderId: string; orderCode: string }) {
   const [open, setOpen] = useState(false);
-  const [shalomCode, setShalomCode] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -27,12 +26,11 @@ export default function ShipOrderDialog({ orderId, orderCode }: { orderId: strin
     mutationFn: async () => {
       if (!file) throw new Error('Selecciona la foto del comprobante de Shalom.');
       const shalomReceiptUrl = await uploadToCloudinary(file);
-      return shipOrderAction(orderId, { shalomCode, shalomReceiptUrl });
+      return shipOrderAction(orderId, { shalomReceiptUrl });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setOpen(false);
-      setShalomCode('');
       setFile(null);
       setError(null);
     },
@@ -51,15 +49,6 @@ export default function ShipOrderDialog({ orderId, orderCode }: { orderId: strin
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="shalomCode">Código de Shalom</Label>
-            <Input
-              id="shalomCode"
-              value={shalomCode}
-              onChange={(e) => setShalomCode(e.target.value)}
-              placeholder="Ej. SH-2026-4821"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
             <Label htmlFor="receipt">Foto del comprobante de Shalom</Label>
             <Input
               id="receipt"
@@ -72,10 +61,7 @@ export default function ShipOrderDialog({ orderId, orderCode }: { orderId: strin
         </div>
 
         <DialogFooter>
-          <Button
-            disabled={!shalomCode || !file || mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
+          <Button disabled={!file || mutation.isPending} onClick={() => mutation.mutate()}>
             {mutation.isPending ? 'Subiendo…' : 'Confirmar envío'}
           </Button>
         </DialogFooter>

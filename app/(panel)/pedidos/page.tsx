@@ -62,6 +62,7 @@ export default function PedidosPage() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Productos</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Envío (Shalom)</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Acciones</TableHead>
@@ -83,6 +84,22 @@ export default function PedidosPage() {
                       .join(', ')}
                   </TableCell>
                   <TableCell className="text-zinc-600">S/ {order.totalAmount}</TableCell>
+                  <TableCell className="text-xs text-zinc-600">
+                    {order.shalomAgency ? (
+                      <div className="space-y-0.5">
+                        <div className="font-medium text-zinc-800">{order.shalomAgency}</div>
+                        <div>
+                          {order.shalomFullName} — DNI {order.shalomDni}
+                        </div>
+                        <div>{order.shalomPhone}</div>
+                        <div>
+                          {order.shalomDistrict}, {order.shalomCity}
+                        </div>
+                      </div>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={STATUS_CLASS[order.status]}>
                       {STATUS_LABEL[order.status]}
@@ -110,7 +127,7 @@ export default function PedidosPage() {
               ))}
               {orders?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-zinc-400">
+                  <TableCell colSpan={8} className="text-center text-zinc-400">
                     Todavía no hay pedidos.
                   </TableCell>
                 </TableRow>

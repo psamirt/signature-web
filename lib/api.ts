@@ -76,7 +76,12 @@ export interface Order {
   status: 'pendiente_pago' | 'pendiente' | 'enviado' | 'cancelado';
   totalAmount: string;
   paymentMethod: string | null;
-  shalomCode: string | null;
+  shalomAgency: string | null;
+  shalomDni: string | null;
+  shalomFullName: string | null;
+  shalomPhone: string | null;
+  shalomDistrict: string | null;
+  shalomCity: string | null;
   shalomReceiptUrl: string | null;
   createdAt: string;
   paidAt: string | null;
@@ -86,7 +91,6 @@ export interface Order {
 }
 
 export interface ShipOrderInput {
-  shalomCode: string;
   shalomReceiptUrl: string;
 }
 
