@@ -1,21 +1,38 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import type { ActionResult } from './actions';
+import { unwrap } from './unwrap';
 import type { Product } from '@/lib/api';
 
-type ActionState = { error?: string } | undefined;
-type FormAction = (prevState: ActionState, formData: FormData) => Promise<ActionState>;
-
 export default function ProductForm({
-  action,
+  mutationFn,
   product,
   submitLabel,
 }: {
-  action: FormAction;
+  mutationFn: (formData: FormData) => Promise<ActionResult>;
   product?: Product;
   submitLabel: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, undefined);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: (formData: FormData) => unwrap(mutationFn(formData)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      router.push('/productos');
+    },
+    onError: (err: Error) => setError(err.message),
+  });
 
   function slugify(value: string) {
     return value
@@ -26,10 +43,16 @@ export default function ProductForm({
       .replace(/(^-|-$)/g, '');
   }
 
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    mutation.mutate(new FormData(event.currentTarget));
+  }
+
   return (
-    <form action={formAction} className="grid max-w-2xl gap-4">
+    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-4">
       <Field label="Nombre">
-        <input
+        <Input
           name="name"
           required
           defaultValue={product?.name}
@@ -41,12 +64,11 @@ export default function ProductForm({
               }
             }
           }}
-          className={inputClass}
         />
       </Field>
 
       <Field label="Slug">
-        <input
+        <Input
           id="slug"
           name="slug"
           required
@@ -54,88 +76,64 @@ export default function ProductForm({
           onChange={(e) => {
             e.target.dataset.touched = 'true';
           }}
-          className={inputClass}
         />
       </Field>
 
       <Field label="Descripción">
-        <textarea
-          name="description"
-          defaultValue={product?.description ?? ''}
-          rows={3}
-          className={inputClass}
-        />
+        <Textarea name="description" defaultValue={product?.description ?? ''} rows={3} />
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Categoría">
-          <input name="category" defaultValue={product?.category ?? ''} className={inputClass} />
+          <Input name="category" defaultValue={product?.category ?? ''} />
         </Field>
         <Field label="Marca">
-          <input name="brand" defaultValue={product?.brand ?? ''} className={inputClass} />
+          <Input name="brand" defaultValue={product?.brand ?? ''} />
         </Field>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Precio (frasco)">
-          <input
+          <Input
             name="price"
             type="number"
             step="0.01"
             min="0"
             required
             defaultValue={product?.price}
-            className={inputClass}
           />
         </Field>
         <Field label="Precio (decant)">
-          <input
+          <Input
             name="priceDecant"
             type="number"
             step="0.01"
             min="0"
             defaultValue={product?.priceDecant ?? ''}
-            className={inputClass}
           />
         </Field>
       </div>
 
       <Field label="Decants por frasco">
-        <input
+        <Input
           name="decantsPerBottle"
           type="number"
           min="1"
           defaultValue={product?.decantsPerBottle ?? ''}
-          className={inputClass}
         />
       </Field>
 
       <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          name="decantEnabled"
-          type="checkbox"
-          defaultChecked={product?.decantEnabled ?? true}
-          className="h-4 w-4"
-        />
+        <Checkbox name="decantEnabled" defaultChecked={product?.decantEnabled ?? true} />
         Habilitado para decants (algunos perfumes se venden solo por frasco)
       </label>
 
       <Field label="URL de imagen">
-        <input
-          name="imageUrl"
-          type="url"
-          defaultValue={product?.imageUrl ?? ''}
-          className={inputClass}
-        />
+        <Input name="imageUrl" type="url" defaultValue={product?.imageUrl ?? ''} />
       </Field>
 
       <label className="flex items-center gap-2 text-sm text-foreground">
-        <input
-          name="active"
-          type="checkbox"
-          defaultChecked={product?.active ?? true}
-          className="h-4 w-4"
-        />
+        <Checkbox name="active" defaultChecked={product?.active ?? true} />
         Activo (visible en el catálogo)
       </label>
 
@@ -143,55 +141,41 @@ export default function ProductForm({
       <h2 className="text-sm font-semibold text-foreground">Inventario</h2>
 
       <Field label="SKU">
-        <input
-          name="sku"
-          required={!product}
-          defaultValue={product?.inventory?.sku}
-          className={inputClass}
-        />
+        <Input name="sku" required={!product} defaultValue={product?.inventory?.sku} />
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Frascos sellados">
-          <input
+          <Input
             name="sealedUnits"
             type="number"
             min="0"
             defaultValue={product?.inventory?.sealedUnits ?? 0}
-            className={inputClass}
           />
         </Field>
         <Field label="Decants sueltos">
-          <input
+          <Input
             name="openDecants"
             type="number"
             min="0"
             defaultValue={product?.inventory?.openDecants ?? 0}
-            className={inputClass}
           />
         </Field>
       </div>
 
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 w-fit rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-      >
-        {pending ? 'Guardando…' : submitLabel}
-      </button>
+      <Button type="submit" disabled={mutation.isPending} className="mt-2 w-fit">
+        {mutation.isPending ? 'Guardando…' : submitLabel}
+      </Button>
     </form>
   );
 }
 
-const inputClass =
-  'rounded-md border border-input px-3 py-2 text-sm outline-none focus:border-ring';
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-foreground">{label}</label>
+      <Label className="text-sm font-medium text-foreground">{label}</Label>
       {children}
     </div>
   );

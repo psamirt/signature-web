@@ -18,7 +18,7 @@ export default async function EditarProductoPage({
       <h1 className="text-2xl font-semibold text-foreground">Editar {product.name}</h1>
       <div className="mt-6">
         <ProductForm
-          action={updateProductAction.bind(null, id)}
+          mutationFn={updateProductAction.bind(null, id)}
           product={product}
           submitLabel="Guardar cambios"
         />

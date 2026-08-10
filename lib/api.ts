@@ -20,6 +20,8 @@ export interface Product {
   imageUrl: string | null;
   brand: string | null;
   active: boolean;
+  /** Papelera: si no es null, el producto está oculto pero no borrado. */
+  deletedAt: string | null;
   inventory: Inventory | null;
 }
 
@@ -172,8 +174,22 @@ export function updateProduct(id: string, data: UpdateProductInput): Promise<Pro
   });
 }
 
-export function deleteProduct(id: string): Promise<void> {
-  return apiFetch<void>(`/products/${id}`, { method: 'DELETE' });
+/** Manda el producto a la papelera (soft delete) — no borra la fila. */
+export function trashProduct(id: string): Promise<Product> {
+  return apiFetch<Product>(`/products/${id}`, { method: 'DELETE' });
+}
+
+export function getTrashedProducts(): Promise<Product[]> {
+  return apiFetch<Product[]>('/products/trash');
+}
+
+export function restoreProduct(id: string): Promise<Product> {
+  return apiFetch<Product>(`/products/${id}/restore`, { method: 'PATCH' });
+}
+
+/** Borrado real, solo posible desde la papelera y si no tiene pedidos. */
+export function purgeProduct(id: string): Promise<void> {
+  return apiFetch<void>(`/products/${id}/purge`, { method: 'DELETE' });
 }
 
 export function getOrders(): Promise<Order[]> {

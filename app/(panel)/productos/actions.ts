@@ -1,12 +1,15 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import {
   createProduct,
-  deleteProduct,
+  getProducts,
+  getTrashedProducts,
+  purgeProduct,
+  restoreProduct,
+  trashProduct as trashProductApi,
   updateProduct,
   type CreateProductInput,
+  type Product,
   type UpdateProductInput,
 } from '@/lib/api';
 
@@ -22,17 +25,41 @@ function int(formData: FormData, key: string): number | undefined {
   return value === undefined ? undefined : Number.parseInt(value, 10);
 }
 
-export async function createProductAction(
-  _prevState: { error?: string } | undefined,
-  formData: FormData,
-): Promise<{ error?: string }> {
+/**
+ * Los errores esperados de la API (ej. 409 al purgar un producto con pedidos)
+ * se devuelven como valor, no con throw: en un Server Action un throw se
+ * convierte en un 500 opaco con digest y el mensaje real nunca llega al cliente.
+ */
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+async function run(fn: () => Promise<unknown>): Promise<ActionResult> {
+  try {
+    await fn();
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Error inesperado.',
+    };
+  }
+}
+
+export async function getProductsAction(): Promise<Product[]> {
+  return getProducts();
+}
+
+export async function getTrashedProductsAction(): Promise<Product[]> {
+  return getTrashedProducts();
+}
+
+export async function createProductAction(formData: FormData): Promise<ActionResult> {
   const name = str(formData, 'name');
   const slug = str(formData, 'slug');
   const price = str(formData, 'price');
   const sku = str(formData, 'sku');
 
   if (!name || !slug || !price || !sku) {
-    return { error: 'Nombre, slug, precio y SKU son obligatorios.' };
+    return { ok: false, error: 'Nombre, slug, precio y SKU son obligatorios.' };
   }
 
   const data: CreateProductInput = {
@@ -54,21 +81,13 @@ export async function createProductAction(
     },
   };
 
-  try {
-    await createProduct(data);
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Error al crear el producto.' };
-  }
-
-  revalidatePath('/productos');
-  redirect('/productos');
+  return run(() => createProduct(data));
 }
 
 export async function updateProductAction(
   id: string,
-  _prevState: { error?: string } | undefined,
   formData: FormData,
-): Promise<{ error?: string }> {
+): Promise<ActionResult> {
   const priceDecant = str(formData, 'priceDecant');
   const decantsPerBottle = int(formData, 'decantsPerBottle');
 
@@ -91,24 +110,17 @@ export async function updateProductAction(
     },
   };
 
-  try {
-    await updateProduct(id, data);
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Error al editar el producto.' };
-  }
-
-  revalidatePath('/productos');
-  redirect('/productos');
+  return run(() => updateProduct(id, data));
 }
 
-export async function deleteProductAction(
-  id: string,
-): Promise<{ error?: string }> {
-  try {
-    await deleteProduct(id);
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Error al eliminar el producto.' };
-  }
-  revalidatePath('/productos');
-  return {};
+export async function trashProductAction(id: string): Promise<ActionResult> {
+  return run(() => trashProductApi(id));
+}
+
+export async function restoreProductAction(id: string): Promise<ActionResult> {
+  return run(() => restoreProduct(id));
+}
+
+export async function purgeProductAction(id: string): Promise<ActionResult> {
+  return run(() => purgeProduct(id));
 }

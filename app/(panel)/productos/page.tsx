@@ -1,10 +1,26 @@
+'use client';
+
 import Link from 'next/link';
-import { getProducts } from '@/lib/api';
-import DeleteButton from './DeleteButton';
+import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { getProductsAction, getTrashedProductsAction } from './actions';
+import TrashProductButton from './TrashProductButton';
+import RestoreProductButton from './RestoreProductButton';
+import PurgeProductButton from './PurgeProductButton';
+import type { Product } from '@/lib/api';
 
-export default async function ProductosPage() {
-  const products = await getProducts();
-
+export default function ProductosPage() {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex items-center justify-between">
@@ -17,71 +33,166 @@ export default async function ProductosPage() {
         </Link>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border bg-muted text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 font-medium">Nombre</th>
-              <th className="px-4 py-3 font-medium">Categoría</th>
-              <th className="px-4 py-3 font-medium">Precio</th>
-              <th className="px-4 py-3 font-medium">Decant</th>
-              <th className="px-4 py-3 font-medium">Stock</th>
-              <th className="px-4 py-3 font-medium">Estado</th>
-              <th className="px-4 py-3 font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-4 py-3 font-medium text-foreground">{product.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{product.category ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">S/ {product.price}</td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {!product.decantEnabled
-                    ? 'Deshabilitado'
-                    : product.priceDecant
-                      ? `S/ ${product.priceDecant}`
-                      : '—'}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {product.inventory
-                    ? `${product.inventory.sealedUnits} sellados / ${product.inventory.openDecants} decants`
-                    : 'sin inventario'}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      product.active
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {product.active ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Link
-                      href={`/productos/${product.id}/editar`}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      Editar
-                    </Link>
-                    <DeleteButton productId={product.id} />
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                  Todavía no hay productos.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Tabs defaultValue="activos" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="activos">Activos</TabsTrigger>
+          <TabsTrigger value="papelera">Papelera</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="activos" className="mt-4">
+          <ActiveProductsTable />
+        </TabsContent>
+        <TabsContent value="papelera" className="mt-4">
+          <TrashedProductsTable />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function ActiveProductsTable() {
+  const { data: products, isLoading, isError } = useQuery({
+    queryKey: ['products'],
+    queryFn: getProductsAction,
+  });
+
+  return (
+    <TableShell isLoading={isLoading} isError={isError} errorMessage="No se pudo cargar la lista de productos.">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nombre</TableHead>
+            <TableHead>Categoría</TableHead>
+            <TableHead>Precio</TableHead>
+            <TableHead>Decant</TableHead>
+            <TableHead>Stock</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead>Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products?.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell className="font-medium text-foreground">{product.name}</TableCell>
+              <TableCell className="text-muted-foreground">{product.category ?? '—'}</TableCell>
+              <TableCell className="text-muted-foreground">S/ {product.price}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {!product.decantEnabled
+                  ? 'Deshabilitado'
+                  : product.priceDecant
+                    ? `S/ ${product.priceDecant}`
+                    : '—'}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {product.inventory
+                  ? `${product.inventory.sealedUnits} sellados / ${product.inventory.openDecants} decants`
+                  : 'sin inventario'}
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={
+                    product.active
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-muted text-muted-foreground'
+                  }
+                >
+                  {product.active ? 'Activo' : 'Inactivo'}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="ghost" render={<Link href={`/productos/${product.id}/editar`} />}>
+                    Editar
+                  </Button>
+                  <TrashProductButton productId={product.id} productName={product.name} />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {products?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-muted-foreground">
+                Todavía no hay productos.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </TableShell>
+  );
+}
+
+function TrashedProductsTable() {
+  const { data: products, isLoading, isError } = useQuery({
+    queryKey: ['products', 'trash'],
+    queryFn: getTrashedProductsAction,
+  });
+
+  return (
+    <TableShell isLoading={isLoading} isError={isError} errorMessage="No se pudo cargar la papelera.">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nombre</TableHead>
+            <TableHead>Categoría</TableHead>
+            <TableHead>Eliminado el</TableHead>
+            <TableHead>Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products?.map((product: Product) => (
+            <TableRow key={product.id}>
+              <TableCell className="font-medium text-foreground">{product.name}</TableCell>
+              <TableCell className="text-muted-foreground">{product.category ?? '—'}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {product.deletedAt ? new Date(product.deletedAt).toLocaleDateString('es-PE') : '—'}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <RestoreProductButton productId={product.id} />
+                  <PurgeProductButton productId={product.id} productName={product.name} />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {products?.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-muted-foreground">
+                La papelera está vacía.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </TableShell>
+  );
+}
+
+function TableShell({
+  isLoading,
+  isError,
+  errorMessage,
+  children,
+}: {
+  isLoading: boolean;
+  isError: boolean;
+  errorMessage: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      {isLoading ? (
+        <div className="space-y-2 p-4">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </div>
+      ) : isError ? (
+        <p className="p-6 text-center text-sm text-destructive">{errorMessage}</p>
+      ) : (
+        children
+      )}
     </div>
   );
 }
