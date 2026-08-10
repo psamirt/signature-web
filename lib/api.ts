@@ -61,13 +61,21 @@ export interface UpdateProductInput {
   inventory?: Partial<InventoryInput>;
 }
 
+/**
+ * Los datos del producto vienen copiados en el ítem (`product*`), no por join:
+ * el histórico de pedidos no depende de que el producto siga en el catálogo.
+ * `productId` es null si el producto se eliminó definitivamente.
+ */
 export interface OrderItem {
   id: string;
-  productId: string;
+  productId: string | null;
+  productName: string;
+  productSku: string | null;
+  productBrand: string | null;
+  productImageUrl: string | null;
   presentation: 'frasco' | 'decant';
   quantity: number;
   unitPrice: string;
-  product: Product;
 }
 
 export interface OrderCustomer {
@@ -212,7 +220,10 @@ export function cancelOrder(id: string): Promise<Order> {
 }
 
 export interface TopProduct {
-  productId: string;
+  /** Clave estable para listas: productId, o el nombre si ya se eliminó. */
+  key: string;
+  /** Null si el producto se eliminó definitivamente del catálogo. */
+  productId: string | null;
   name: string;
   quantity: number;
   revenue: string;

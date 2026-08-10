@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { ActionResult } from './actions';
-import { unwrap } from './unwrap';
+import { useToast } from '@/hooks/use-toast';
+import { unwrap, type ActionResult } from '@/lib/action-result';
 import type { Product } from '@/lib/api';
 
 export default function ProductForm({
@@ -23,15 +22,16 @@ export default function ProductForm({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const mutation = useMutation({
     mutationFn: (formData: FormData) => unwrap(mutationFn(formData)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success(product ? 'Cambios guardados.' : 'Producto creado.');
       router.push('/productos');
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (error) => toast.fromError(error),
   });
 
   function slugify(value: string) {
@@ -45,7 +45,6 @@ export default function ProductForm({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
     mutation.mutate(new FormData(event.currentTarget));
   }
 
@@ -162,8 +161,6 @@ export default function ProductForm({
           />
         </Field>
       </div>
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" disabled={mutation.isPending} className="mt-2 w-fit">
         {mutation.isPending ? 'Guardando…' : submitLabel}

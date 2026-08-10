@@ -33,7 +33,16 @@ Ya no queda código con el patrón viejo: `app/(panel)/productos/` se migró a T
 6. Eliminar: `useMutation` + el componente `AlertDialog` de shadcn para la confirmación, en vez de `confirm()` del navegador.
 7. Si algún componente de shadcn que necesitas no está instalado, corre `npx shadcn@latest add <nombre>` — no lo escribas a mano.
 
-**Errores esperados: devolverlos, nunca `throw` desde un Server Action.** Si un Server Action deja propagar un error (ej. un 409 de la API al intentar eliminar un producto con pedidos), Next lo convierte en un 500 opaco con `digest` y el cliente solo ve "Minified React error #441" — el mensaje real nunca llega. El patrón es el de `productos/actions.ts`: las mutaciones devuelven `ActionResult` (`{ ok: true } | { ok: false; error }`) y el cliente lo pasa por `unwrap()` (`productos/unwrap.ts`) para que sí sea un throw dentro de `useMutation` y caiga en `mutation.isError`. Los `queryFn` de lectura pueden propagar normal — ahí `isError` de `useQuery` alcanza.
+**Errores esperados: devolverlos, nunca `throw` desde un Server Action.** Si un Server Action deja propagar un error (ej. un 409 de la API al intentar eliminar un producto con un pedido en curso), Next lo convierte en un 500 opaco con `digest` y el cliente solo ve "Minified React error #441" — el mensaje real nunca llega. El patrón vive en **`lib/action-result.ts`** (compartido por todas las secciones, sin imports server-only): la Server Action envuelve la llamada en `run()` y devuelve `ActionResult` (`{ ok: true } | { ok: false; error }`); el cliente la pasa por `unwrap()` para que sí sea un throw dentro de `useMutation` y caiga en `onError`. Los `queryFn` de lectura pueden propagar normal — ahí `isError` de `useQuery` alcanza.
+
+## Toasts (feedback de éxito/error)
+
+**Nunca pongas el error como texto dentro del formulario o el diálogo**: al aparecer/desaparecer empuja el contenido y deforma el layout. Todo el feedback va por toast.
+
+- `sonner` de shadcn (`components/ui/sonner.tsx`), con el `<Toaster position="bottom-right" richColors />` montado una sola vez en `app/layout.tsx`.
+- **Siempre a través de `hooks/use-toast.ts`, nunca importando `sonner` directo en un componente.** Ese hook es el único punto donde se controlan duraciones, estilos y posición, así que darles otro look a futuro es un cambio en un solo archivo. Expone `success`, `error`, `info` (todos con `description` opcional) y `fromError(error, fallback?)`, que es el que se usa en `onError` de `useMutation` — resuelve el `unknown` sin repetir `instanceof Error` en cada pantalla.
+- Los mensajes de error de la API ya vienen redactados para el usuario final (los `ConflictException`/`BadRequestException` de `api/`), así que `fromError` los muestra tal cual.
+- En un `AlertDialog` de confirmación que falla, el diálogo se queda **abierto** a propósito (ver `productos/PurgeProductButton.tsx`): el motivo se lee en el toast y el dueño puede reintentar sin volver a buscar la fila.
 
 ## Variables de entorno (`.env.local`, ver `.env.local.example`)
 

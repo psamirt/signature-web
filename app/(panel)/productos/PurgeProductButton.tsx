@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -15,8 +14,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import { purgeProductAction } from './actions';
-import { unwrap } from './unwrap';
+import { unwrap } from '@/lib/action-result';
 
 export default function PurgeProductButton({
   productId,
@@ -27,23 +27,22 @@ export default function PurgeProductButton({
 }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const mutation = useMutation({
     mutationFn: () => unwrap(purgeProductAction(productId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setOpen(false);
+      toast.success(`${productName} se eliminó definitivamente.`);
     },
+    // El diálogo se queda abierto en el error a propósito: el motivo se explica
+    // en el toast y así el dueño puede reintentar sin volver a buscar la fila.
+    onError: (error) => toast.fromError(error),
   });
 
   return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (next) mutation.reset();
-      }}
-    >
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger render={<Button size="sm" variant="destructive" />}>
         Eliminar definitivamente
       </AlertDialogTrigger>
@@ -51,13 +50,11 @@ export default function PurgeProductButton({
         <AlertDialogHeader>
           <AlertDialogTitle>¿Eliminar {productName} definitivamente?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción no se puede deshacer. Si el producto tiene pedidos asociados, no se podrá
-            eliminar.
+            Esta acción no se puede deshacer: se borra del catálogo para siempre. Los pedidos ya
+            cerrados no se pierden — guardan su propia copia del producto y seguirán mostrando qué
+            se vendió y a qué precio.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {mutation.isError && (
-          <p className="text-sm text-destructive">{mutation.error.message}</p>
-        )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={mutation.isPending}>Cancelar</AlertDialogCancel>
           <AlertDialogAction

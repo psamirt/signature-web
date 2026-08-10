@@ -3,17 +3,27 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { restoreProductAction } from './actions';
-import { unwrap } from './unwrap';
+import { unwrap } from '@/lib/action-result';
 
-export default function RestoreProductButton({ productId }: { productId: string }) {
+export default function RestoreProductButton({
+  productId,
+  productName,
+}: {
+  productId: string;
+  productName: string;
+}) {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const mutation = useMutation({
     mutationFn: () => unwrap(restoreProductAction(productId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success(`${productName} volvió al catálogo.`);
     },
+    onError: (error) => toast.fromError(error),
   });
 
   return (

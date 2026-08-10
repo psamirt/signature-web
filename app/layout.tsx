@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "./query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <QueryProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </QueryProvider>
+        {/* Los errores y confirmaciones del panel se muestran acá, no como
+            texto bajo los formularios (deformaba el layout). Ver hooks/use-toast.ts. */}
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );

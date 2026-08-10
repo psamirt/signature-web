@@ -12,6 +12,7 @@ import {
   type Product,
   type UpdateProductInput,
 } from '@/lib/api';
+import { run, type ActionResult } from '@/lib/action-result';
 
 function str(formData: FormData, key: string): string | undefined {
   const value = formData.get(key);
@@ -23,25 +24,6 @@ function str(formData: FormData, key: string): string | undefined {
 function int(formData: FormData, key: string): number | undefined {
   const value = str(formData, key);
   return value === undefined ? undefined : Number.parseInt(value, 10);
-}
-
-/**
- * Los errores esperados de la API (ej. 409 al purgar un producto con pedidos)
- * se devuelven como valor, no con throw: en un Server Action un throw se
- * convierte en un 500 opaco con digest y el mensaje real nunca llega al cliente.
- */
-export type ActionResult = { ok: true } | { ok: false; error: string };
-
-async function run(fn: () => Promise<unknown>): Promise<ActionResult> {
-  try {
-    await fn();
-    return { ok: true };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Error inesperado.',
-    };
-  }
 }
 
 export async function getProductsAction(): Promise<Product[]> {

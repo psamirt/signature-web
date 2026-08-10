@@ -15,8 +15,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import { trashProductAction } from './actions';
-import { unwrap } from './unwrap';
+import { unwrap } from '@/lib/action-result';
 
 export default function TrashProductButton({
   productId,
@@ -27,13 +28,16 @@ export default function TrashProductButton({
 }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const mutation = useMutation({
     mutationFn: () => unwrap(trashProductAction(productId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setOpen(false);
+      toast.success(`${productName} se movió a la papelera.`);
     },
+    onError: (error) => toast.fromError(error),
   });
 
   return (
@@ -53,7 +57,8 @@ export default function TrashProductButton({
         <AlertDialogHeader>
           <AlertDialogTitle>¿Eliminar {productName}?</AlertDialogTitle>
           <AlertDialogDescription>
-            Se mueve a la papelera. Podrás restaurarlo o eliminarlo definitivamente desde ahí.
+            Se mueve a la papelera y sale del catálogo de Meta y del bot de WhatsApp. Podrás
+            restaurarlo o eliminarlo definitivamente desde ahí.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {mutation.isError && <p className="text-sm text-destructive">{mutation.error.message}</p>}

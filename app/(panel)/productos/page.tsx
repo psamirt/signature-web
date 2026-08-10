@@ -137,6 +137,7 @@ function TrashedProductsTable() {
             <TableHead>Nombre</TableHead>
             <TableHead>Categoría</TableHead>
             <TableHead>Eliminado el</TableHead>
+            <TableHead>Al restaurar</TableHead>
             <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -148,9 +149,14 @@ function TrashedProductsTable() {
               <TableCell className="text-muted-foreground">
                 {product.deletedAt ? new Date(product.deletedAt).toLocaleDateString('es-PE') : '—'}
               </TableCell>
+              {/* Restaurar devuelve el producto como estaba: saber si vuelve
+                  activo importa, porque eso lo republica en el feed de Meta. */}
+              <TableCell className="text-xs text-muted-foreground">
+                {product.active ? 'Vuelve visible en el catálogo' : 'Vuelve oculto (inactivo)'}
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <RestoreProductButton productId={product.id} />
+                  <RestoreProductButton productId={product.id} productName={product.name} />
                   <PurgeProductButton productId={product.id} productName={product.name} />
                 </div>
               </TableCell>
@@ -158,7 +164,7 @@ function TrashedProductsTable() {
           ))}
           {products?.length === 0 && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground">
+              <TableCell colSpan={5} className="text-center text-muted-foreground">
                 La papelera está vacía.
               </TableCell>
             </TableRow>

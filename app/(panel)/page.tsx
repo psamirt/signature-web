@@ -148,7 +148,7 @@ export default function DashboardPage() {
                   </TableHeader>
                   <TableBody>
                     {data.topProducts.map((p) => (
-                      <TableRow key={p.productId}>
+                      <TableRow key={p.key}>
                         <TableCell>{p.name}</TableCell>
                         <TableCell>{p.quantity}</TableCell>
                         <TableCell>S/ {p.revenue}</TableCell>

@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { unwrap } from '@/lib/action-result';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { shipOrderAction } from './actions';
 
@@ -27,8 +29,8 @@ export default function ShipOrderDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const toast = useToast();
   const receiptRequired = deliveryMethod === 'shalom';
 
   const mutation = useMutation({
@@ -37,15 +39,15 @@ export default function ShipOrderDialog({
         throw new Error('Selecciona la foto del comprobante de Shalom.');
       }
       const shalomReceiptUrl = file ? await uploadToCloudinary(file) : undefined;
-      return shipOrderAction(orderId, { shalomReceiptUrl });
+      return unwrap(shipOrderAction(orderId, { shalomReceiptUrl }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setOpen(false);
       setFile(null);
-      setError(null);
+      toast.success(`${orderCode} marcado como enviado.`, 'Se le avisó al cliente por WhatsApp.');
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (error) => toast.fromError(error),
   });
 
   return (
@@ -70,7 +72,6 @@ export default function ShipOrderDialog({
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
         </div>
 
         <DialogFooter>

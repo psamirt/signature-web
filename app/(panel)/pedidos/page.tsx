@@ -80,7 +80,7 @@ export default function PedidosPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {order.items
-                      .map((item) => `${item.quantity}× ${item.product.name} (${item.presentation})`)
+                      .map((item) => `${item.quantity}× ${item.productName} (${item.presentation})`)
                       .join(', ')}
                   </TableCell>
                   <TableCell className="text-muted-foreground">S/ {order.totalAmount}</TableCell>
