@@ -101,7 +101,14 @@ export async function updateProductAction(
   redirect('/productos');
 }
 
-export async function deleteProductAction(id: string) {
-  await deleteProduct(id);
+export async function deleteProductAction(
+  id: string,
+): Promise<{ error?: string }> {
+  try {
+    await deleteProduct(id);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Error al eliminar el producto.' };
+  }
   revalidatePath('/productos');
+  return {};
 }

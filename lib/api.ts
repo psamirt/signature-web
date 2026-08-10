@@ -133,7 +133,17 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new ApiError(res.status, body || `Error ${res.status} al llamar a ${path}`);
+    const parsed = (() => {
+      try {
+        return JSON.parse(body) as { message?: string | string[] };
+      } catch {
+        return undefined;
+      }
+    })();
+    const message = Array.isArray(parsed?.message)
+      ? parsed.message.join(', ')
+      : parsed?.message;
+    throw new ApiError(res.status, message || body || `Error ${res.status} al llamar a ${path}`);
   }
 
   if (res.status === 204) return undefined as T;

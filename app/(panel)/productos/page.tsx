@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { getProducts } from '@/lib/api';
-import { deleteProductAction } from './actions';
 import DeleteButton from './DeleteButton';
 
 export default async function ProductosPage() {
@@ -68,14 +67,7 @@ export default async function ProductosPage() {
                     >
                       Editar
                     </Link>
-                    <form
-                      action={async () => {
-                        'use server';
-                        await deleteProductAction(product.id);
-                      }}
-                    >
-                      <DeleteButton />
-                    </form>
+                    <DeleteButton productId={product.id} />
                   </div>
                 </td>
               </tr>
